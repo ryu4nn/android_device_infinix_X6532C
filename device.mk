@@ -6,7 +6,10 @@
 # declares platform packages, permissions, A/B OTA and device properties.
 #
 
-LOCAL_PATH := $(call my-dir)
+# Hard-coded on purpose: when this file is evaluated through inherit-product
+# the value of $(call my-dir) is the temporary product makefile under out/,
+# not this directory, so $(LOCAL_PATH) would be empty here.
+LOCAL_PATH := device/infinix/X6532C
 
 # ------------------------------------------------------------------
 # API / Treble

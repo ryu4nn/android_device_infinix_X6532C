@@ -1,0 +1,24 @@
+#
+# system.prop — Infinix Smart 9 HD (X6532C)
+#
+# Device properties taken from the stock vendor prop.default / build.prop.
+#
+
+# Graphics / display
+ro.opengles.version=196610
+ro.sf.lcd_density=320
+ro.hardware.egl=meow
+ro.hardware.hwcomposer=mtk_common
+
+# Trustonic TEE backed keystore
+ro.hardware.gatekeeper=trustonic
+ro.hardware.kmsetkey=trustonic
+ro.hardware.paytrigger=trustonic
+
+# Crypto
+ro.crypto.volume.filenames_mode=aes-256-cts
+
+# MediaTek
+ro.mediatek.platform=MT6765
+ro.mediatek.chip_ver=S01
+ro.mediatek.version.branch=12.0

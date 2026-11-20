@@ -7,6 +7,15 @@
 # Inherit from the common AOSP 12.1 phone configuration
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
+# Inherit the LineageOS product configuration. Without this the build never
+# defines LINEAGE_VERSION (the zip came out as "lineage-.zip") and ships no
+# LineageOS packages at all — v19.1 of common.mk inherits no AOSP base itself,
+# so full_base_telephony.mk above is still required. LINEAGE_BUILD is normally
+# exported by the LineageOS build servers; set it here since this is an
+# unofficial build.
+LINEAGE_BUILD := X6532C
+$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+
 # Inherit the device
 $(call inherit-product, device/infinix/X6532C/device.mk)
 

@@ -27,6 +27,14 @@ PRODUCT_USE_DYNAMIC_PARTITIONS := true
 # sized from the actual build output and must fit BOARD_MAIN_SIZE.
 PRODUCT_USE_DYNAMIC_PARTITION_SIZE := true
 
+# build/make/core/Makefile:4321 drops the whole OTA package
+# (INTERNAL_OTA_PACKAGE_TARGET) when recovery_fstab is empty, and that variable
+# never gets set on a tree built with TARGET_NO_RECOVERY. With it empty, bacon
+# has no dependencies at all and ninja finishes without compiling anything.
+# The recovery_fstab check only exists for non-A/B update packages; this device
+# is AB_OTA_UPDATER, where the payload does not use it.
+PRODUCT_BUILD_GENERIC_OTA_PACKAGE := true
+
 AB_OTA_UPDATER := true
 AB_OTA_PARTITIONS += \
     boot \

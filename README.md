@@ -105,6 +105,15 @@ lunch lineage_X6532C-userdebug
 mka bacon
 ```
 
+`lineage_X6532C.mk` inherits `vendor/lineage/config/common_full_phone.mk` on top
+of `full_base_telephony.mk`; LineageOS 19.1's `common.mk` carries no AOSP base of
+its own, and without the inherit there is no `LINEAGE_VERSION` and no LineageOS
+package set. `PRODUCT_BUILD_GENERIC_OTA_PACKAGE := true` is needed because
+`build/make/core/Makefile:4321` clears `INTERNAL_OTA_PACKAGE_TARGET` when
+`recovery_fstab` is empty, which is always the case for a `TARGET_NO_RECOVERY`
+tree — with that target empty, `bacon` has no dependencies and ninja compiles
+nothing.
+
 ## Structure
 
 ```
@@ -195,6 +204,15 @@ source build/envsetup.sh
 lunch lineage_X6532C-userdebug
 mka bacon
 ```
+
+`lineage_X6532C.mk` meng-inherit `vendor/lineage/config/common_full_phone.mk` di
+atas `full_base_telephony.mk`; `common.mk` LineageOS 19.1 tidak membawa base AOSP
+sendiri, dan tanpa inherit itu `LINEAGE_VERSION` kosong dan paket LineageOS tidak
+ikut. `PRODUCT_BUILD_GENERIC_OTA_PACKAGE := true` diperlukan karena
+`build/make/core/Makefile:4321` mengosongkan `INTERNAL_OTA_PACKAGE_TARGET` kalau
+`recovery_fstab` kosong — selalu begitu pada tree dengan `TARGET_NO_RECOVERY`.
+Kalau target itu kosong, `bacon` tidak punya dependency dan ninja tidak
+mengompilasi apa pun.
 
 ## Yang belum selesai
 

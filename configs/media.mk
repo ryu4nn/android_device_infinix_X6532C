@@ -1,16 +1,13 @@
 #
 # configs/media.mk — Infinix Smart 9 HD (X6532C)
 #
-# MediaTek media codecs / audio. The real XMLs live in the vendor partition
-# (vendor/etc/media_codecs*.xml, vendor/etc/mtk_audio*). Nothing needs to be
-# built from source here; the vendor blobs provide everything.
+# MediaTek media codecs / audio. The real XMLs and the OMX/C2 shims live in the
+# vendor partition (vendor/etc/media_codecs*.xml, vendor/lib/libstagefright_*),
+# so nothing needs to be built from source here.
 #
-# This file exists so device.mk can inherit device-specific config knobs.
+# This file exists so device.mk can inherit device-specific media knobs.
+# Keep it dependency-free: do not add module names that are not part of AOSP
+# 12.1, or the build will stop with "module not found".
 #
 
-# Software codecs
-PRODUCT_PACKAGES += \
-    libavcodec \
-    libavformat
-
-# MediaTek OMX/C2 shims are prebuilt in vendor (libstagefright_soft_*).
+# Board-specific media feature declarations (none for now).

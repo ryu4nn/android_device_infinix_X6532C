@@ -24,6 +24,12 @@ DEVICE_PATH := device/infinix/X6532C
 # Architecture: userspace is 32-bit only
 #   ro.vendor.product.cpu.abilist = armeabi-v7a,armeabi
 #   ro.zygote = zygote32
+#   vendor/lib = 721 libraries, vendor/lib64 = 2 libraries
+#
+# The kernel, however, is 64-bit (GKI 5.10 aarch64) and therefore exposes the
+# 64-bit binder protocol; 32-bit processes reach it through the compat ioctls.
+# config.mk demands this flag for PRODUCT_SHIPPING_API_LEVEL >= 28, and leaving
+# it unset would make libbinder assume a 32-bit BINDER_IPC_32BIT kernel.
 # ------------------------------------------------------------------
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
@@ -31,6 +37,7 @@ TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_VARIANT := generic
 TARGET_CPU_VARIANT_RUNTIME := cortex-a53
+TARGET_USES_64_BIT_BINDER := true
 
 # ------------------------------------------------------------------
 # Platform

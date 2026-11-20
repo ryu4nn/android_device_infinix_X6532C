@@ -23,6 +23,9 @@ PRODUCT_TARGET_VNDK_VERSION := 31
 # ro.vendor.build.dont_use_vabc=true  -> no background compression
 # ------------------------------------------------------------------
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
+# No fixed partition sizes are declared: system/system_ext/vendor/product are
+# sized from the actual build output and must fit BOARD_MAIN_SIZE.
+PRODUCT_USE_DYNAMIC_PARTITION_SIZE := true
 
 AB_OTA_UPDATER := true
 AB_OTA_PARTITIONS += \

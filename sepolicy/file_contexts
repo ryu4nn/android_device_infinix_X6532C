@@ -1,0 +1,5 @@
+# Device file_contexts (Infinix Smart 9 HD / X6532C)
+#
+# One entry per line, "<regex> <context>".
+# Empty by default: the stock vendor policy already labels everything that the
+# vendor partition ships. Add entries only for files the device tree installs.

@@ -31,6 +31,7 @@ source "${HELPER}"
 setup_vendor "${DEVICE}" "${VENDOR}" "${ANDROID_ROOT}" false
 
 # Write the makefiles
+write_headers
 write_makefiles "${MY_DIR}/proprietary-files.txt" true
 
 # Finish

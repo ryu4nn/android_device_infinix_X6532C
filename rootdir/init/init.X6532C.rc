@@ -1,0 +1,15 @@
+#
+# init.X6532C.rc — Infinix Smart 9 HD (X6532C)
+#
+# Device-specific system services only. All MediaTek hardware services live in
+# the vendor partition and are started by vendor/etc/init/hw/init.mt6765.rc.
+# Keep this file deliberately small; add services here only when a service is
+# provided by the device tree (system) rather than by the vendor blobs.
+#
+
+on early-init
+    # Reserve /data/media ownership for the FBE media provider
+    mkdir /data/media 0770 media_rw media_rw
+
+on boot
+    # Device bring-up hooks go here (sensors, input, display calibration, ...).

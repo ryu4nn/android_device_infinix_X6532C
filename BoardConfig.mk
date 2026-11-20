@@ -141,6 +141,11 @@ TARGET_SCREEN_DENSITY := 320
 TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
 
 # ------------------------------------------------------------------
+# SELinux: device-side additions only (vendor policy stays in vendor)
+# ------------------------------------------------------------------
+BOARD_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy
+
+# ------------------------------------------------------------------
 # Build fixes for the minimal manifest used by this device
 # ------------------------------------------------------------------
 BUILD_BROKEN_DUP_RULES := true

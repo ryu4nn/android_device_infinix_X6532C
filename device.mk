@@ -80,7 +80,11 @@ PRODUCT_COPY_FILES += \
 #  blob repo via $(LOCAL_PATH)/lineage.dependencies)
 # ------------------------------------------------------------------
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/rootdir/etc/fstab.mt6765:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.mt6765
+    $(LOCAL_PATH)/rootdir/etc/fstab.mt6765:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.mt6765 \
+    $(LOCAL_PATH)/rootdir/init/init.X6532C.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.X6532C.rc
+
+# Build-time RRO overlays
+PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
 # ------------------------------------------------------------------
 # Device properties

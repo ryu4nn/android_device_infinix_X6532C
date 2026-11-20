@@ -45,7 +45,7 @@ so the tree uses the **stock prebuilt kernel**:
 
 ```
 prebuilt/kernel     Linux 5.10.237 (Image, header v4)
-prebuilt/dtb.img    device tree (from vendor_boot)
+prebuilt/dtb.dtb    device tree (dt_table from vendor_boot)
 prebuilt/dtbo.img   stock dtbo
 prebuilt/modules/   161 kernel modules (.ko)
 ```

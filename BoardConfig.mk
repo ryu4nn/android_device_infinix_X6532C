@@ -68,9 +68,17 @@ BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --dtb_offset $(BOARD_DTB_OFFSET)
 
-# Device tree: dtb is in vendor_boot, dtbo has its own partition
-TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.img
+# Device tree: the DTB lives in vendor_boot (a header v4 boot image carries
+# none), dtbo has its own partition.
+#
+# build/make only wires the vendor_boot --dtb argument when
+# BOARD_INCLUDE_DTB_IN_BOOTIMG is set, and it assembles the dtb image it passes
+# by concatenating every *.dtb found in BOARD_PREBUILT_DTBIMAGE_DIR. This
+# device's vendor_boot dtb section is a dt_table (magic d7b7ab1e), byte-identical
+# to the stock one, so it is stored as prebuilt/dtb.dtb.
+BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_PREBUILT_DTBIMAGE_DIR := $(DEVICE_PATH)/prebuilt
+TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.dtb
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
 
 # Kernel modules live in the vendor_boot vendor ramdisk (/lib/modules),

@@ -44,11 +44,24 @@ vendor ramdisk + dtb + modules. There is **no kernel source** for this MT6765,
 so the tree uses the **stock prebuilt kernel**:
 
 ```
-prebuilt/kernel     Linux 5.10.237 (Image, header v4)
-prebuilt/dtb.dtb    device tree (dt_table from vendor_boot)
-prebuilt/dtbo.img   stock dtbo
-prebuilt/modules/   161 kernel modules (.ko)
+prebuilt/kernel       Linux 5.10.237 (Image.gz, header v4)
+prebuilt/dtb.dtb      vendor_boot dtb section (dt_table, byte-identical to stock)
+prebuilt/dtbo.img     stock dtbo
+prebuilt/modules/     156 kernel modules (.ko)
+prebuilt/modules.load first-stage load order, 140 modules, stock verbatim
+prebuilt/fstab.mt6765 first-stage fstab (ext4 only, no avb flags)
 ```
+
+`modules.load` is kept in the stock order because module dependencies have to be
+loaded before the modules that use them; an alphabetical list does not boot. The
+other 16 modules in `prebuilt/modules/` only appear in the stock
+`modules.load.recovery` and are recovery-only.
+
+`prebuilt/fstab.mt6765` goes into the vendor ramdisk as
+`first_stage_ramdisk/fstab.mt6765`: first-stage init reads the fstab from the
+ramdisk, because `/vendor` is itself a logical partition it still has to mount.
+The second-stage fstab stays the untouched stock copy at
+`/vendor/etc/fstab.mt6765` from the blob repo.
 
 If matching MT6765 kernel source ever shows up, replace
 `TARGET_PREBUILT_KERNEL` with the built kernel.
@@ -88,8 +101,7 @@ extract-files.sh        pull blobs from device/dump
 setup-makefiles.sh      generate blob makefiles
 proprietary-files.txt   vendor blob list
 lineage.dependencies    blob repo
-prebuilt/               kernel, dtb, dtbo, modules
-rootdir/etc/            fstab.mt6765
+prebuilt/               kernel, dtb, dtbo, modules, modules.load, fstab
 rootdir/init/           device init
 configs/                media configuration
 sepolicy/               (placeholder) device policy

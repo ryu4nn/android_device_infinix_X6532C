@@ -88,11 +88,14 @@ BOARD_PREBUILT_DTBIMAGE_DIR := $(DEVICE_PATH)/prebuilt
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb.dtb
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
 
-# Kernel modules live in the vendor_boot vendor ramdisk (/lib/modules),
-# 161 files, 140 loaded at first stage (stock modules.load).
+# Kernel modules live in the vendor_boot vendor ramdisk (/lib/modules):
+# 156 .ko files, 140 loaded by first-stage init. The load order is not
+# alphabetical — dependent modules must come after their dependencies — so the
+# stock modules.load is shipped verbatim. The remaining 16 modules only appear
+# in the stock modules.load.recovery and belong to the recovery ramdisk.
 VENDOR_KERNEL_MODULES := $(wildcard $(DEVICE_PATH)/prebuilt/modules/*.ko)
 BOARD_VENDOR_RAMDISK_KERNEL_MODULES := $(VENDOR_KERNEL_MODULES)
-BOARD_VENDOR_RAMDISK_KERNEL_MODULES_LOAD := $(patsubst $(DEVICE_PATH)/prebuilt/modules/%,%,$(VENDOR_KERNEL_MODULES))
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES_LOAD := $(shell cat $(DEVICE_PATH)/prebuilt/modules.load)
 
 # ------------------------------------------------------------------
 # Partitions (MT6765_Android_scatter.txt, byte sizes)

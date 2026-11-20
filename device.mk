@@ -79,6 +79,13 @@ PRODUCT_HOST_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init/init.X6532C.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.X6532C.rc
 
+# First-stage init reads the fstab from the vendor ramdisk, not from /vendor,
+# because /vendor is itself a logical partition that first stage has to mount.
+# The file is the stock one with the erofs alternatives and the avb flags
+# removed (this ROM builds ext4 images and does not sign them).
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/prebuilt/fstab.mt6765:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/first_stage_ramdisk/fstab.mt6765
+
 # Build-time RRO overlays
 PRODUCT_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 

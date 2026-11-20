@@ -157,6 +157,22 @@ TARGET_SCREEN_DENSITY := 320
 # ------------------------------------------------------------------
 TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
 
+# The vendor partition is rebuilt from the stock blobs, so its build.prop has to
+# be the stock one too: 627 lines of ro.vendor.* / ro.product.vendor.* / MTK
+# props that nothing in this tree would regenerate. Copying it as a
+# PRODUCT_COPY_FILES entry does not work, because sysprop.mk owns that exact
+# target (INSTALLED_VENDOR_BUILD_PROP_TARGET) and the generated file would
+# replace it. TARGET_VENDOR_PROP is the supported hook: sysprop.mk concatenates
+# it into the generated vendor/build.prop. odm/etc/build.prop works the same way
+# through TARGET_ODM_PROP.
+#
+# vendor_dlkm and odm_dlkm have no such hook (sysprop.mk passes empty file and
+# variable lists for them), so those two are left to the build; all they carry
+# is ro.product.*_dlkm.* identity, and their one real property,
+# persist.sys.usb.config=none, is already in vendor.prop.
+TARGET_VENDOR_PROP := $(DEVICE_PATH)/vendor.prop
+TARGET_ODM_PROP := $(DEVICE_PATH)/odm.prop
+
 # ------------------------------------------------------------------
 # SELinux: device-side additions only (vendor policy stays in vendor)
 # ------------------------------------------------------------------
@@ -167,6 +183,14 @@ BOARD_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy
 # ------------------------------------------------------------------
 BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+
+# vendor.prop is the stock vendor build.prop, so the identity properties it
+# carries (ro.product.vendor.*, ro.vendor.build.*) collide with the ones
+# sysprop.mk generates from the product config. post_process_props.py treats a
+# duplicate with a different value as a hard error unless duplicates are
+# allowed; allow them and let the generated value win, the rest of the stock
+# file is untouched.
+BUILD_BROKEN_DUP_SYSPROP := true
 
 # The build must not pick up the recovery-only bits from the OrangeFox tree
 TARGET_NO_RECOVERY := true

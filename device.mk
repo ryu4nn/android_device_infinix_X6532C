@@ -51,7 +51,11 @@ PRODUCT_PACKAGES += \
 # ------------------------------------------------------------------
 PRODUCT_PACKAGES += \
     fsck.f2fs \
-    make_f2fs \
+    make_f2fs
+
+# make_f2fs_casefold is host-only (it has no target variant), so it belongs in
+# PRODUCT_HOST_PACKAGES; listing it in PRODUCT_PACKAGES is a hard build error.
+PRODUCT_HOST_PACKAGES += \
     make_f2fs_casefold
 
 # ------------------------------------------------------------------

@@ -1,47 +1,72 @@
-# Device tree — Infinix Smart 9 HD (X6532C)
+# Device Tree for the Infinix Smart 9 HD (X6532C)
 
-Device tree for the **Infinix Smart 9 HD (X6532C)** — MediaTek **MT6765**,
-targeting **LineageOS 19.1 (Android 12.1)**, A/B + Virtual A/B, dynamic
-partitions (`super`), and **no recovery partition** (recovery resources live in
-`vendor_boot`).
+The Infinix Smart 9 HD (codenamed "X6532C") is an entry-level smartphone from
+Infinix, announced in January 2025. It ships with Android 14 Go Edition (XOS 14)
+on top of the MediaTek MT6765 platform, marketed as the Helio G50, with 3 or 4 GB
+of LPDDR4X RAM, 64 GB of eMMC 5.1 storage and a 6.7 inch 90 Hz display.
 
-This tree was built from the device's own firmware, **not** copied from any
-public tree. Every number in `BoardConfig.mk` was read from:
+This tree targets **LineageOS 19.1 (Android 12.1)** with A/B + Virtual A/B,
+dynamic partitions (`super`) and no recovery partition (the recovery resources
+live in `vendor_boot`).
 
-| Source | Used for |
-| --- | --- |
-| `MT6765_Android_scatter.txt` | partition sizes (`boot`, `vendor_boot`, `dtbo`, `super`) |
-| `lpdump super.img` | dynamic partition layout (group `main`) |
-| `unpack_bootimg boot.img` | header v4, kernel + generic ramdisk |
-| `unpack_bootimg vendor_boot.img` | dtb, load addresses, 161 kernel modules |
-| `avbtool info_image vbmeta*.img` | AVB state of the active slot |
+It was written from a read-only dump of the device itself, **not** copied from
+any public tree. Every number in `BoardConfig.mk` was read from:
+
+| Source                          | Used for                                              |
+| ------------------------------- | ----------------------------------------------------- |
+| `MT6765_Android_scatter.txt`    | partition sizes (`boot`, `vendor_boot`, `dtbo`, `super`) |
+| `lpdump super.img`              | dynamic partition layout (group `main`)               |
+| `unpack_bootimg boot.img`       | header v4, kernel + generic ramdisk                   |
+| `unpack_bootimg vendor_boot.img`| dtb, load addresses, kernel modules                   |
+| `avbtool info_image vbmeta*.img`| AVB state of the active slot                          |
+
+## Device specifications
+
+| Feature                 | Specification                                      |
+| :---------------------- | :------------------------------------------------- |
+| Chipset                 | MediaTek MT6765 (Helio G50), 12 nm                 |
+| CPU                     | Octa-core (8x Cortex-A53, up to 2.2 GHz)           |
+| GPU                     | Imagination PowerVR GE8320                         |
+| Memory                  | 3 / 4 GB LPDDR4X                                   |
+| Shipped Android Version | 14 (Go edition, XOS 14)                            |
+| Storage                 | 64 GB eMMC 5.1, microSDXC up to 1 TB               |
+| SIM                     | Dual Nano-SIM (dual stand-by)                      |
+| Battery                 | 5000 mAh Li-Po, 10 W wired charging                |
+| Dimensions              | 165.7 x 77.1 x 8.4 mm, 188 g                       |
+| Display                 | 6.7 inch IPS LCD, 720 x 1600 (HD+), 90 Hz          |
+| Rear Camera             | 13 MP f/1.9 (wide), AF, plus auxiliary lens        |
+| Front Camera            | 8 MP                                               |
+| Fingerprint             | Side-mounted (power button)                        |
+| Sensors                 | Accelerometer, Proximity, Compass                  |
+| Speakers                | Stereo, DTS                                        |
 
 ## Firmware facts
 
 The device is **Treble**, but system and vendor are different versions:
 
-| Partition | Version | Identity |
-| --- | --- | --- |
-| `system` | **Android 14 (SDK 34)** | Transsion `TSSI` / `AGo-64`, 32-bit (Go) |
-| `vendor` | **Android 12 (SDK 31)** | `Infinix-X6532C`, VNDK 31 |
+| Partition | Version               | Identity                                              |
+| --------- | --------------------- | ----------------------------------------------------- |
+| `system`  | **Android 14 (SDK 34)** | Transsion `TSSI` / `AGo-64`, 32-bit (Go)            |
+| `vendor`  | **Android 12 (SDK 31)** | `Infinix-X6532C`, VNDK 31                            |
 
 Because the vendor interface (VNDK) is **31**, the correct ROM is **Android 12.1**.
-The stock system is Android 14 GSI-style, but the vendor is Android 12 — so a
-custom ROM must follow the **vendor** side.
+The stock system is an Android 14 GSI-style image, but the vendor is Android 12 —
+so a custom ROM has to follow the **vendor** side.
 
-Other important facts:
+Other relevant facts:
 
 - Userspace is **32-bit only** (`ro.vendor.product.cpu.abilist=armeabi-v7a,armeabi`, `ro.zygote=zygote32`).
 - Vendor security patch: `2025-07-05`.
 - Vendor fingerprint: `Infinix/X6532C-OP/Infinix-X6532C:12/SP1A.210812.016/260417V1882:user/release-keys`.
-- Gatekeeper / KeyMint / kmSetKey use the **Trustonic TEE** (`ro.hardware.gatekeeper=trustonic`).
-- Bootloader is on **slot b**; `vbmeta` flags=3 (verification + hashtree disabled).
+- Gatekeeper / KeyMint use the **Trustonic TEE** (`ro.hardware.gatekeeper=trustonic`).
+- The bootloader is on **slot b**; `vbmeta` flags=3 (verification and hashtree disabled).
 
 ## Kernel
 
-The device is **GKI-style**: `boot` = kernel + generic ramdisk, `vendor_boot` =
-vendor ramdisk + dtb + modules. There is **no kernel source** for this MT6765,
-so the tree uses the **stock prebuilt kernel**:
+The device is **GKI-style**: `boot` carries the kernel and the generic ramdisk,
+`vendor_boot` carries the vendor ramdisk, the dtb and the kernel modules. There is
+**no kernel source** for this MT6765, so the tree uses the **stock prebuilt
+kernel**:
 
 ```
 prebuilt/kernel       Linux 5.10.237 (Image.gz, header v4)
@@ -59,8 +84,8 @@ other 16 modules in `prebuilt/modules/` only appear in the stock
 
 `prebuilt/fstab.mt6765` goes into the vendor ramdisk as
 `first_stage_ramdisk/fstab.mt6765`: first-stage init reads the fstab from the
-ramdisk, because `/vendor` is itself a logical partition it still has to mount.
-The second-stage fstab stays the untouched stock copy at
+ramdisk, because `/vendor` is itself a logical partition that still has to be
+mounted. The second-stage fstab stays the untouched stock copy at
 `/vendor/etc/fstab.mt6765` from the blob repo.
 
 If matching MT6765 kernel source ever shows up, replace
@@ -68,14 +93,14 @@ If matching MT6765 kernel source ever shows up, replace
 
 ## Blobs
 
-The blob list is `proprietary-files.txt` (**1993 vendor files**, generated from
-the firmware `/vendor`). The blobs themselves live in a separate repo:
+The blob list is `proprietary-files.txt` (1993 vendor files), generated from the
+firmware `/vendor`. The blobs themselves live in a separate repository:
 
 ```
 android_vendor_infinix_X6532C  ->  vendor/infinix/X6532C
 ```
 
-Regenerate with:
+Its makefile copies 1932 files. Regenerate both with:
 
 ```bash
 ./extract-files.sh /path/to/dump     # or "adb" if the device is connected
@@ -83,19 +108,19 @@ Regenerate with:
 
 ### Vendor and ODM build.prop
 
-Two property files are kept in this tree instead of the blob repo:
+Two property files are kept in this tree instead of the blob repository:
 `vendor.prop` (the stock `vendor/build.prop`, 627 lines) and `odm.prop` (the
-stock `vendor/odm/etc/build.prop`). Both are fed through `TARGET_VENDOR_PROP`
-and `TARGET_ODM_PROP`, because `build/make/core/sysprop.mk` generates those
-exact files (`vendor/build.prop`, `vendor/odm/etc/build.prop`) from the product
-config, and a `PRODUCT_COPY_FILES` entry pointing at them would be silently
-overwritten. `vendor_dlkm` and `odm_dlkm` have no such hook; their build.prop is
-generated by the build (identity properties only — the one real property,
-`persist.sys.usb.config=none`, is also in `vendor.prop`).
+stock `vendor/odm/etc/build.prop`). Both are fed through `TARGET_VENDOR_PROP` and
+`TARGET_ODM_PROP`, because `build/make/core/sysprop.mk` generates those exact
+files (`vendor/build.prop`, `vendor/odm/etc/build.prop`) from the product
+configuration, and a `PRODUCT_COPY_FILES` entry pointing at them would be
+silently overwritten. `vendor_dlkm` and `odm_dlkm` have no such hook; their
+build.prop is generated by the build (identity properties only — the one real
+property, `persist.sys.usb.config=none`, is also in `vendor.prop`).
 
 Because the stock file carries identity properties that the build regenerates,
-`BUILD_BROKEN_DUP_SYSPROP` is on; otherwise `post_process_props.py` fails on the
-duplicates.
+`BUILD_BROKEN_DUP_SYSPROP` is enabled; otherwise `post_process_props.py` fails on
+the duplicates.
 
 ## Build
 
@@ -114,7 +139,11 @@ package set. `PRODUCT_BUILD_GENERIC_OTA_PACKAGE := true` is needed because
 tree — with that target empty, `bacon` has no dependencies and ninja compiles
 nothing.
 
-## Structure
+CI builds `m droid` instead of `mka bacon`: a package signed with the AOSP test
+keys is rejected by the stock recovery, so the build produces partition images
+rather than an OTA zip.
+
+## Repository layout
 
 ```
 AndroidProducts.mk      product list
@@ -127,7 +156,7 @@ odm.prop                stock vendor/odm/etc/build.prop (TARGET_ODM_PROP)
 extract-files.sh        pull blobs from device/dump
 setup-makefiles.sh      generate blob makefiles
 proprietary-files.txt   vendor blob list
-lineage.dependencies    blob repo
+lineage.dependencies    blob repository
 prebuilt/               kernel, dtb, dtbo, modules, modules.load, fstab
 rootdir/init/           device init
 configs/                media configuration
@@ -135,12 +164,12 @@ sepolicy/               (placeholder) device policy
 overlay/                (placeholder) RRO overlay
 ```
 
-## Status / not done yet
+## Status
 
-This is a structurally complete tree with accurate device data, but it is
-**not guaranteed to boot**:
+This is a structurally complete tree with accurate device data, but it is **not
+guaranteed to boot**:
 
-1. **Blob repo** (`android_vendor_infinix_X6532C`) must be in the manifest.
+1. **Blob repository** (`android_vendor_infinix_X6532C`) must be in the manifest.
 2. **Common MTK trees** must be added: `device/mediatek/sepolicy`,
    `hardware/mediatek`, etc.
 3. **Kernel** is still prebuilt — without source, only the stock kernel can be used.
@@ -151,72 +180,22 @@ Without kernel source and the common MTK trees, this ROM can be built but the
 bring-up is complex; for an MT6765 device like this the most realistic path
 remains **GSI + stock vendor**.
 
----
+## Copyright
 
-# Device tree (ID) — Infinix Smart 9 HD (X6532C)
-
-Device tree untuk **Infinix Smart 9 HD (X6532C)** — MediaTek **MT6765**,
-target **LineageOS 19.1 (Android 12.1)**, A/B + Virtual A/B, dynamic partition
-(`super`), **tanpa partisi recovery** (resource recovery ada di `vendor_boot`).
-
-Tree ini dibuat dari firmware device itu sendiri, **bukan** disalin dari tree
-publik. Semua angka di `BoardConfig.mk` dibaca dari scatter, `lpdump`,
-`unpack_bootimg`, dan `avbtool`.
-
-## Fakta firmware
-
-Device ini **Treble**, tapi system dan vendor beda versi: `system` = Android 14
-(SDK 34, Transsion `TSSI`/`AGo-64`, 32-bit), `vendor` = Android 12 (SDK 31,
-`Infinix-X6532C`, VNDK 31). Karena VNDK = 31, ROM yang benar adalah
-**Android 12.1**.
-
-- Userspace **hanya 32-bit**.
-- Security patch vendor `2025-07-05`.
-- Gatekeeper/KeyMint pakai **Trustonic TEE**.
-- Bootloader di **slot b**, `vbmeta` flags=3 (verifikasi mati).
-
-## Kernel
-
-Device ini **GKI-style**, dan **tidak ada source kernel**, jadi tree memakai
-kernel prebuilt stock (5.10.237) + dtb + dtbo + 161 modul.
-
-## build.prop vendor dan ODM
-
-Dua file property disimpan di tree ini, bukan di repo blob: `vendor.prop` (isi
-stock `vendor/build.prop`, 627 baris) dan `odm.prop` (stock
-`vendor/odm/etc/build.prop`). Keduanya disalurkan lewat `TARGET_VENDOR_PROP` dan
-`TARGET_ODM_PROP`, karena `build/make/core/sysprop.mk` men-generate file yang
-sama (`vendor/build.prop`, `vendor/odm/etc/build.prop`) dari konfigurasi
-product — kalau dimasukkan sebagai `PRODUCT_COPY_FILES`, file hasil generate
-yang menang dan isi stock hilang tanpa error. `vendor_dlkm` dan `odm_dlkm`
-tidak punya hook itu; build.prop-nya digenerate oleh build (isinya hanya
-property identitas, dan satu-satunya property nyata di sana,
-`persist.sys.usb.config=none`, sudah ada di `vendor.prop`).
-
-Karena file stock membawa property identitas yang juga digenerate build,
-`BUILD_BROKEN_DUP_SYSPROP` dinyalakan; tanpa itu `post_process_props.py` gagal
-pada duplikatnya.
-
-## Build
-
-```bash
-source build/envsetup.sh
-lunch lineage_X6532C-userdebug
-mka bacon
 ```
-
-`lineage_X6532C.mk` meng-inherit `vendor/lineage/config/common_full_phone.mk` di
-atas `full_base_telephony.mk`; `common.mk` LineageOS 19.1 tidak membawa base AOSP
-sendiri, dan tanpa inherit itu `LINEAGE_VERSION` kosong dan paket LineageOS tidak
-ikut. `PRODUCT_BUILD_GENERIC_OTA_PACKAGE := true` diperlukan karena
-`build/make/core/Makefile:4321` mengosongkan `INTERNAL_OTA_PACKAGE_TARGET` kalau
-`recovery_fstab` kosong — selalu begitu pada tree dengan `TARGET_NO_RECOVERY`.
-Kalau target itu kosong, `bacon` tidak punya dependency dan ninja tidak
-mengompilasi apa pun.
-
-## Yang belum selesai
-
-Kerangka lengkap dan akurat, tapi **belum dijamin boot**: blob repo harus masuk
-manifest, tree MTK umum perlu ditambah, kernel masih prebuilt, dan
-sepolicy/overlay/configs masih placeholder. Untuk MT6765 seperti ini jalur
-paling realistis tetap **GSI + vendor stock**.
+#
+# Copyright (C) 2025 The LineageOS Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+```

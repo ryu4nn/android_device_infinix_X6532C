@@ -39,3 +39,12 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
     PRIVATE_BUILD_DESC="Infinix/X6532C-OP/Infinix-X6532C:12/SP1A.210812.016/260417V1882:user/release-keys"
 
 BUILD_FINGERPRINT := Infinix/X6532C-OP/Infinix-X6532C:12/SP1A.210812.016/260417V1882:user/release-keys
+
+# ------------------------------------------------------------------
+# Locales
+#
+# locales_full.mk (pulled in through full_base) asks for every locale the
+# tree has resources for. Packing ~80 locales costs aapt2 time and roughly
+# a gigabyte of system image, so keep only the two this device ships with.
+# ------------------------------------------------------------------
+PRODUCT_LOCALES := en_US id_ID

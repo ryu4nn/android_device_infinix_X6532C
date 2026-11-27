@@ -170,9 +170,22 @@ which is where TWRP lives. `droid` produces the raw images instead.
 ### Google apps
 
 `tools/fetch-gapps.sh` downloads a pinned MindTheGapps 13.0.0 **arm** archive,
-verifies its sha256, unpacks it under `gapps/` and writes `gapps/gapps.mk` with
-explicit `PRODUCT_COPY_FILES` lines. `device.mk` inherits that makefile only when
-it exists, so a tree that was merely `repo sync`ed builds vanilla LineageOS.
+verifies its sha256, unpacks it under `gapps/` and writes two generated files:
+`gapps/gapps.mk` (product configuration) and `gapps/Android.mk` (module
+definitions). `device.mk` inherits the first one only when it exists, so a tree
+that was merely `repo sync`ed builds vanilla LineageOS.
+
+The APKs cannot travel through `PRODUCT_COPY_FILES`: `build/make/core/Makefile`
+rejects a prebuilt `.apk` there and points at `BUILD_PREBUILT`. Each of the 16
+APKs therefore becomes a prebuilt module named `MtG_<ApkName>` and is pulled in
+with `PRODUCT_PACKAGES`. `LOCAL_MODULE_PATH` is the partition directory the
+archive uses (`product/app`, `product/priv-app`, `system_ext/priv-app`), and
+`base_rules.mk` appends `/<module>` for module class `APPS`, so every app keeps
+the directory of its own. The two overlays in `product/overlay` add
+`LOCAL_IS_RUNTIME_RESOURCE_OVERLAY := true` because a runtime resource overlay
+has to be a bare `<Name>.apk`. The other 13 entries — permissions XML, sysconfig
+XML, the init script, the dialer support jar and `libjni_latinimegoogle.so` —
+stay on `PRODUCT_COPY_FILES`.
 
 The arm (32-bit) archive is the correct one: userspace here is `armeabi-v7a`
 only and `ro.vendor.product.cpu.abilist64` is empty, so arm64 payload would never

@@ -16,12 +16,36 @@ LOCAL_PATH := device/infinix/X6532C
 # ------------------------------------------------------------------
 PRODUCT_SHIPPING_API_LEVEL := 31
 
-# The vendor partition is VNDK 31 (vendor/etc/selinux/plat_sepolicy_vers.txt
-# reads 31.0). Android 13 builds the platform at VNDK 33, so the v31 snapshot
-# is installed as well: that is what provides /system/lib/vndk-31 and
-# ld.config.31.txt for the vendor linker namespace. prebuilts/vndk/v31 is part
-# of the default LineageOS 20.0 manifest.
+# ------------------------------------------------------------------
+# VNDK: the vendor partition is VNDK 31, the platform builds at VNDK 33.
+#
+# In Android 13 the VNDK is delivered as an APEX, not as a
+# /system/lib/vndk-31 directory. com.android.vndk.v31 is an apex_vndk module
+# (packages/modules/vndk/apex/Android.bp) declared non-updatable and
+# system_ext_specific, so its libraries land under
+# /system_ext/apex/com.android.vndk.v31 and init bind-mounts them at
+# /apex/com.android.vndk.v31.
+#
+# linkerconfig builds the vendor linker namespace at boot from the VNDK
+# version the vendor asks for (ro.vndk.version=31), so that mount is what lets
+# a vendor HAL resolve libcutils, libbase, libhidlbase and friends. Without the
+# package the vendor side starts its services and they die on dlopen.
+#
+# PRODUCT_EXTRA_VNDK_VERSIONS is kept as well: board_config.mk validates it
+# against the prebuilts/vndk/v31 snapshot, and gsi/Android.mk consumes it. On
+# its own, however, it installs nothing in a device build - the package line
+# below is the part that puts the APEX on the image.
+# ------------------------------------------------------------------
 PRODUCT_EXTRA_VNDK_VERSIONS := 31
+PRODUCT_PACKAGES += com.android.vndk.v31
+
+# The stock vendor build.prop ends with ro.product.first_api_level=34, because
+# the device shipped with Android 14. init resolves ro.product.* from the first
+# partition in ro.product.property_source_order that defines the property, and
+# that order begins with product, so this copy wins over the vendor one.
+# 34 implies VINTF level 8, which an Android 13 framework cannot provide; 31 is
+# the vendor's own API level (ro.vendor.build.version.sdk=31).
+PRODUCT_PRODUCT_PROPERTIES += ro.product.first_api_level=31
 
 # BRING-UP: the stock vendor manifest is target-level 5 but declares HAL
 # versions newer than the AOSP level-5 matrix, so checkvintf rejects the pair.

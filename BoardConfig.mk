@@ -162,10 +162,10 @@ BOARD_AVB_VBMETA_VENDOR_ALGORITHM := NONE
 # Treble / VNDK — the vendor is VNDK 31, the framework is VNDK 33
 #
 # BOARD_VNDK_VERSION stays "current" (33 on T): the platform is built at its
-# own VNDK. The 31 side is covered by shipping the v31 snapshot libraries
-# (device.mk: PRODUCT_EXTRA_VNDK_VERSIONS), so the vendor linker namespace
-# finds /system/lib/vndk-31 and ld.config.31.txt. prebuilts/vndk/v31 is part
-# of the default LineageOS 20 manifest.
+# own VNDK. The 31 side is covered by installing the com.android.vndk.v31
+# APEX (device.mk), which is how Android 13 delivers a VNDK older than the
+# platform. There is no /system/lib/vndk-31 and no ld.config.31.txt in T:
+# both belong to Android 10 and earlier.
 # ------------------------------------------------------------------
 BOARD_VNDK_VERSION := current
 

@@ -53,13 +53,25 @@ Because the vendor interface (VNDK) is **31**, the ROM has to speak VNDK 31 to t
 vendor partition no matter which platform it runs. That is a supported upgrade
 path, not a reason to stay on Android 12:
 
-- `PRODUCT_EXTRA_VNDK_VERSIONS := 31` installs the v31 snapshot libraries from
-  `prebuilts/vndk/v31`, which is part of the default LineageOS 20.0 manifest.
-  That puts `/system/lib/vndk-31`, `/system/lib/vndk-sp-31` and
-  `ld.config.31.txt` in place, so the vendor linker namespace resolves its
-  libraries the same way it does under the stock Android 12 system.
+- `PRODUCT_PACKAGES += com.android.vndk.v31` installs the VNDK 31 **APEX**.
+  Android 13 does not deliver old VNDKs as `/system/lib/vndk-31` directories;
+  `com.android.vndk.v31` is an `apex_vndk` module that is non-updatable and
+  `system_ext_specific`, so its libraries sit in
+  `/system_ext/apex/com.android.vndk.v31` and init bind-mounts them at
+  `/apex/com.android.vndk.v31`. `linkerconfig` builds the vendor linker
+  namespace at boot from `ro.vndk.version=31`, so that mount is what lets a
+  vendor HAL resolve `libcutils`, `libbase`, `libhidlbase` and friends.
+  `PRODUCT_EXTRA_VNDK_VERSIONS := 31` is set too — it validates the
+  `prebuilts/vndk/v31` snapshot — but on its own it installs nothing in a
+  device build.
 - `BOARD_VNDK_VERSION` stays `current` (33): the platform is built at its own
   VNDK, and the vendor partition is never rebuilt.
+
+`ro.product.first_api_level` is restated as 31 on `/product`. The stock vendor
+build.prop ends with 34 (the device shipped with Android 14), which implies
+VINTF level 8 — a level an Android 13 framework cannot provide. init resolves
+`ro.product.*` from the first partition in `ro.product.property_source_order`,
+and that order begins with `product`, so the platform copy wins.
 
 The stock system is an Android 14 GSI-style image, but the vendor is Android 12;
 the vendor side is the fixed point, and it is the side this ROM keeps untouched.

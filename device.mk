@@ -15,7 +15,19 @@ LOCAL_PATH := device/infinix/X6532C
 # API / Treble
 # ------------------------------------------------------------------
 PRODUCT_SHIPPING_API_LEVEL := 31
-PRODUCT_TARGET_VNDK_VERSION := 31
+
+# The vendor partition is VNDK 31 (vendor/etc/selinux/plat_sepolicy_vers.txt
+# reads 31.0). Android 13 builds the platform at VNDK 33, so the v31 snapshot
+# is installed as well: that is what provides /system/lib/vndk-31 and
+# ld.config.31.txt for the vendor linker namespace. prebuilts/vndk/v31 is part
+# of the default LineageOS 20.0 manifest.
+PRODUCT_EXTRA_VNDK_VERSIONS := 31
+
+# BRING-UP: the stock vendor manifest is target-level 5 but declares HAL
+# versions newer than the AOSP level-5 matrix, so checkvintf rejects the pair.
+# vintf/compatibility_matrix.device.xml describes them; wiring it in is stage 2
+# (the note in BoardConfig.mk explains why it is not wired for run 1).
+PRODUCT_ENFORCE_VINTF_MANIFEST := false
 
 # ------------------------------------------------------------------
 # Partitions: dynamic (super), A/B with virtual A/B
@@ -87,6 +99,18 @@ PRODUCT_HOST_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init/init.X6532C.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.X6532C.rc
 
+# ------------------------------------------------------------------
+# X6532C integration: touch gestures, touch game mode, panel refresh rate.
+#
+# Both scripts are the ones proven on the ArrowOS repack. The boot script runs
+# from init.X6532C.rc once sys.boot_completed=1, inside a device-owned domain
+# (sepolicy/x6532c_boot.te) rather than a borrowed one, because the Transsion
+# /proc nodes are labelled by the prebuilt vendor policy.
+# ------------------------------------------------------------------
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/bin/x6532c-boot.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/x6532c-boot.sh \
+    $(LOCAL_PATH)/bin/x6532c:$(TARGET_COPY_OUT_SYSTEM)/bin/x6532c
+
 # First-stage init reads the fstab from the vendor ramdisk, not from /vendor,
 # because /vendor is itself a logical partition that first stage has to mount.
 # The file is the stock one with the erofs alternatives and the avb flags
@@ -118,3 +142,23 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 # Inherit media/audio configs shipped with the device tree
 # ------------------------------------------------------------------
 $(call inherit-product, $(LOCAL_PATH)/configs/media.mk)
+
+# ------------------------------------------------------------------
+# Google apps
+#
+# No proprietary binaries live in this repository. tools/fetch-gapps.sh
+# downloads a pinned MindTheGapps 13.0.0 arm archive, verifies its sha256,
+# extracts system/ under gapps/ and writes gapps/gapps.mk with explicit
+# PRODUCT_COPY_FILES lines. CI runs it before lunch; a tree that was only
+# synced (no gapps/gapps.mk) builds vanilla LineageOS instead, so this never
+# breaks a plain `repo sync` checkout.
+# ------------------------------------------------------------------
+GAPPS_DIR := $(LOCAL_PATH)/gapps
+
+ifneq ($(wildcard $(GAPPS_DIR)/gapps.mk),)
+$(call inherit-product, $(GAPPS_DIR)/gapps.mk)
+
+# MindTheGapps ships its own privilege allowlists; keep PackageManager in log
+# mode so a missing entry degrades instead of taking system_server down.
+PRODUCT_PROPERTY_OVERRIDES += ro.control_privapp_permissions=log
+endif

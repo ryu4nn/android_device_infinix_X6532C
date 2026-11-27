@@ -1,0 +1,23 @@
+# x6532c_boot — one-shot device integration script.
+#
+# Started from init.X6532C.rc at sys.boot_completed=1. It applies the persisted
+# double-tap-to-wake, touch game mode and panel refresh settings, so it needs to
+# write two Transsion vendor proc nodes:
+#
+#   /proc/gesture_function   cc1 = dt2w on, cc0 = off
+#   /proc/game_state         1 = touch IC game mode
+#
+# Those nodes are labelled by the prebuilt vendor policy, which this policy
+# cannot name without a vendor_ prefix mapping, so the rules are not guessed
+# here.
+
+type x6532c_boot, domain;
+type x6532c_boot_exec, exec_type, file_type, system_file_type;
+
+init_daemon_domain(x6532c_boot)
+
+# BRING-UP: permissive so the first device boot reports the real denials
+# ("adb shell dmesg | grep avc") instead of failing silently. Once that list is
+# known, add the explicit allows and drop this line; the domain is then
+# enforcing like any other.
+typepermissive x6532c_boot

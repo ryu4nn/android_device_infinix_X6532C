@@ -1,5 +1,9 @@
 # Device file_contexts (Infinix Smart 9 HD / X6532C)
 #
 # One entry per line, "<regex> <context>".
-# Empty by default: the stock vendor policy already labels everything that the
-# vendor partition ships. Add entries only for files the device tree installs.
+#
+# The stock vendor policy already labels everything the vendor partition ships,
+# so only files installed by this device tree appear here.
+
+# X6532C integration script, started from init.X6532C.rc (sepolicy/x6532c_boot.te).
+/system/bin/x6532c-boot\.sh    u:object_r:x6532c_boot_exec:s0

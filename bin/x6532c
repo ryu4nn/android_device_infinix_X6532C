@@ -1,0 +1,138 @@
+#!/system/bin/sh
+# X6532C device control.
+#
+#   x6532c status             show what is active
+#   x6532c fps 60|90|auto     panel mode (real 60/90 Hz DRM modes)
+#   x6532c dt2w on|off        double tap to wake
+#   x6532c game on|off        touch panel game mode (higher report rate)
+#   x6532c apply              re-run the boot script now
+#
+# Preferences are stored in /data/local/tmp/x6532c.conf, which adb shell can
+# always write, and applied by /system/bin/x6532c-boot.sh at boot. When the
+# command is run with enough privilege (root / phhsu_daemon) it is applied
+# immediately as well; otherwise it says so and is applied on the next boot.
+
+CONF=/data/local/tmp/x6532c.conf
+PROC_GESTURE=/proc/gesture_function
+PROC_GAME=/proc/game_state
+
+usage() {
+    echo "usage: x6532c {status|fps 60|90|auto|dt2w on|off|game on|off|apply}"
+    exit 1
+}
+
+conf_get() {
+    [ -f "$CONF" ] || return 0
+    sed -n "s/^$1=//p" "$CONF" 2>/dev/null | tail -1
+}
+
+conf_set() { # <key> <value>
+    local tmp="/data/local/tmp/.x6532c.$$"
+    if [ -f "$CONF" ]; then
+        grep -v "^$1=" "$CONF" > "$tmp" 2>/dev/null || : > "$tmp"
+    else
+        : > "$tmp"
+    fi
+    echo "$1=$2" >> "$tmp"
+    mv "$tmp" "$CONF"
+    chmod 0644 "$CONF" 2>/dev/null
+    chown 2000:2000 "$CONF" 2>/dev/null
+}
+
+live_fps() {
+    v="$(settings get system min_refresh_rate 2>/dev/null)"
+    [ -z "$v" ] || [ "$v" = "null" ] && v="auto"
+    echo "$v"
+}
+
+case "$1" in
+    status)
+        echo "model           : $(getprop ro.product.model)"
+        echo "device          : $(getprop ro.product.device)"
+        echo "rom             : $(getprop ro.x6532c.rom)"
+        echo "preferences     : $CONF"
+        echo "  dt2w          : $(conf_get dt2w)"
+        echo "  game          : $(conf_get game)"
+        echo "  fps           : $(conf_get fps)"
+        echo "live"
+        echo "  min refresh   : $(live_fps)"
+        if [ -e "$PROC_GESTURE" ]; then
+            echo "  gesture node  : $PROC_GESTURE"
+        else
+            echo "  gesture node  : absent"
+        fi
+        dumpsys display 2>/dev/null | grep -o 'fps=[0-9.]*' | sort -u | sed 's/^/  panel mode    : /'
+        ;;
+    fps)
+        case "$2" in
+            60|90)
+                conf_set fps "$2"
+                setprop persist.sys.x6532c.refresh "$2" 2>/dev/null
+                if settings put system min_refresh_rate "$2" 2>/dev/null; then
+                    settings put system peak_refresh_rate "$2" 2>/dev/null
+                    echo "refresh rate -> ${2}Hz (persisted)"
+                else
+                    echo "stored ${2}Hz; will be applied at next boot"
+                fi
+                ;;
+            auto)
+                conf_set fps 0
+                setprop persist.sys.x6532c.refresh 0 2>/dev/null
+                settings delete system min_refresh_rate >/dev/null 2>&1
+                settings delete system peak_refresh_rate >/dev/null 2>&1
+                echo "refresh rate -> system default (persisted)"
+                ;;
+            *) usage ;;
+        esac
+        ;;
+    dt2w)
+        case "$2" in
+            on)
+                conf_set dt2w 1
+                setprop persist.sys.x6532c.dt2w 1 2>/dev/null
+                if echo cc1 > "$PROC_GESTURE" 2>/dev/null; then
+                    echo "dt2w on (applied)"
+                else
+                    echo "dt2w on (stored, applied at next boot)"
+                fi
+                ;;
+            off)
+                conf_set dt2w 0
+                setprop persist.sys.x6532c.dt2w 0 2>/dev/null
+                if echo cc0 > "$PROC_GESTURE" 2>/dev/null; then
+                    echo "dt2w off (applied)"
+                else
+                    echo "dt2w off (stored, applied at next boot)"
+                fi
+                ;;
+            *) usage ;;
+        esac
+        ;;
+    game)
+        case "$2" in
+            on)
+                conf_set game 1
+                setprop persist.sys.x6532c.game 1 2>/dev/null
+                if echo 1 > "$PROC_GAME" 2>/dev/null; then
+                    echo "touch game mode on (applied)"
+                else
+                    echo "touch game mode stored, applied at next boot"
+                fi
+                ;;
+            off)
+                conf_set game 0
+                setprop persist.sys.x6532c.game 0 2>/dev/null
+                if echo 0 > "$PROC_GAME" 2>/dev/null; then
+                    echo "touch game mode off (applied)"
+                else
+                    echo "touch game mode stored, applied at next boot"
+                fi
+                ;;
+            *) usage ;;
+        esac
+        ;;
+    apply)
+        /system/bin/x6532c-boot.sh
+        ;;
+    *) usage ;;
+esac

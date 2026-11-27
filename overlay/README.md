@@ -19,4 +19,4 @@ listed in the product makefile via `PRODUCT_PACKAGE_OVERLAYS` (LineageOS adds
 ## Status
 
 Empty placeholder. Real values are added during bring-up once the stock vendor
-defaults are known to need overriding on LineageOS 19.1.
+defaults are known to need overriding on LineageOS 20.0.

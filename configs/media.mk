@@ -7,7 +7,7 @@
 #
 # This file exists so device.mk can inherit device-specific media knobs.
 # Keep it dependency-free: do not add module names that are not part of AOSP
-# 12.1, or the build will stop with "module not found".
+# 13, or the build will stop with "module not found".
 #
 
 # Board-specific media feature declarations (none for now).

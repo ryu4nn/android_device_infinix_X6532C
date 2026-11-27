@@ -13,3 +13,12 @@ on early-init
 
 on boot
     # Device bring-up hooks go here (sensors, input, display calibration, ...).
+
+# Touch gestures, touch game mode and the panel refresh default.
+#
+# The Transsion nodes (/proc/gesture_function, /proc/game_state) only exist
+# once the touch and display modules have probed, so this runs after
+# boot_completed and the script itself waits up to 30 s for the node. It runs
+# in x6532c_boot, a device-owned domain (sepolicy/x6532c_boot.te).
+on property:sys.boot_completed=1
+    exec_background u:r:x6532c_boot:s0 root -- /system/bin/x6532c-boot.sh

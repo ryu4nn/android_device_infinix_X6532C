@@ -1,0 +1,5 @@
+# Filled by tools/fetch-gapps.sh — never commit proprietary binaries.
+system/
+product/
+system_ext/
+gapps.mk

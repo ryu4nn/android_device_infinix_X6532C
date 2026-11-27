@@ -1,8 +1,24 @@
 #
 # BoardConfig.mk — Infinix Smart 9 HD (X6532C), MediaTek MT6765
 #
-# Target : LineageOS 19.1 (Android 12.1), matching the vendor side.
+# Target : LineageOS 20.0 (Android 13), running on the Android 12 vendor side.
 # Layout : A/B + Virtual A/B, dynamic partitions (super), no recovery partition.
+#
+# Android 13 versus Android 12 deltas that this board config has to answer:
+#
+#  * VNDK 33 framework against a VNDK 31 vendor. Handled by shipping VNDK 31
+#    snapshots from prebuilts/vndk/v31 (PRODUCT_EXTRA_VNDK_VERSIONS, device.mk),
+#    which is the supported upgrade path. The vendor never gets rebuilt.
+#  * init_boot. Android 13 normally moves the generic ramdisk there. This
+#    device has the partition but it is 8 MiB of zeroes (verified with
+#    hexdump on init_boot_a.img) and the stock boot.img is header v4 with a
+#    1380093 byte ramdisk. So BOARD_INIT_BOOT_IMAGE_PARTITION_SIZE and
+#    BOARD_PREBUILT_INIT_BOOT_IMAGE are deliberately NOT defined: with
+#    BUILDING_INIT_BOOT_IMAGE unset, build/make/core/Makefile:991 keeps
+#    --ramdisk on boot.img, which is the layout the bootloader here reads.
+#  * Recovery. It lives in vendor_boot on this device (that is why the TWRP
+#    image is a 64 MiB vendor_boot.img). Nothing in this ROM writes
+#    vendor_boot, so the stock/TWRP recovery stays untouched.
 #
 # Every number here was read from this device's own firmware, the SP Flash Tool
 # package "X6532C-MF380ABCDEFGH-UGo-OP-260417V1675":
@@ -143,9 +159,31 @@ BOARD_AVB_VBMETA_VENDOR := vendor
 BOARD_AVB_VBMETA_VENDOR_ALGORITHM := NONE
 
 # ------------------------------------------------------------------
-# Treble / VNDK — vendor is VNDK 31, and LineageOS 19.1 is VNDK 31
+# Treble / VNDK — the vendor is VNDK 31, the framework is VNDK 33
+#
+# BOARD_VNDK_VERSION stays "current" (33 on T): the platform is built at its
+# own VNDK. The 31 side is covered by shipping the v31 snapshot libraries
+# (device.mk: PRODUCT_EXTRA_VNDK_VERSIONS), so the vendor linker namespace
+# finds /system/lib/vndk-31 and ld.config.31.txt. prebuilts/vndk/v31 is part
+# of the default LineageOS 20 manifest.
 # ------------------------------------------------------------------
 BOARD_VNDK_VERSION := current
+
+# ------------------------------------------------------------------
+# VINTF: the stock vendor manifest is target-level 5 but declares newer HAL
+# versions than the AOSP level-5 matrix knows (radio@1.6, wifi@1.5, usb@1.3,
+# 24 mtkradioex@3.0 instances, 18 lbs@1.0 instances, ...). vintf/ holds a
+# framework matrix fragment that permits them.
+#
+# BRING-UP: the fragment is not wired for the first build. Enabling it means
+# the whole checkvintf pass must accept a hand-written matrix, and a mistake
+# there costs a full run, so run 1 builds with PRODUCT_ENFORCE_VINTF_MANIFEST
+# disabled and the fragment unused. Stage 2 turns both on together:
+#
+#   DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := $(DEVICE_PATH)/vintf/compatibility_matrix.device.xml
+#
+# and removes PRODUCT_ENFORCE_VINTF_MANIFEST := false from device.mk.
+# ------------------------------------------------------------------
 
 # ------------------------------------------------------------------
 # Display

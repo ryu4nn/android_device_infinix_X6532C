@@ -130,7 +130,7 @@ for p in system product system_ext; do
                     echo "include \$(CLEAR_VARS)"
                     echo "LOCAL_MODULE := $mod"
                     echo "LOCAL_MODULE_OWNER := google"
-                    echo "LOCAL_SRC_FILES := $rel"
+                    echo "LOCAL_SRC_FILES := $p/$rel"
                     echo "LOCAL_MODULE_CLASS := APPS"
                     echo "LOCAL_MODULE_SUFFIX := .apk"
                     echo "LOCAL_CERTIFICATE := PRESIGNED"
@@ -172,6 +172,20 @@ dupes=$(grep '^LOCAL_MODULE :=' "$GAPPS/Android.mk" | sort | uniq -d || true)
 if [ -n "$dupes" ]; then
     say "duplicate module names inside the archive:"
     printf '%s\n' "$dupes"
+    exit 1
+fi
+
+# Every module has to point at a file that is really in the payload. A wrong
+# relative path surfaces much later, as a ninja "missing and no known rule to
+# make it" error at the end of a long build.
+missing=$(grep '^LOCAL_SRC_FILES :=' "$GAPPS/Android.mk" \
+    | sed 's|^LOCAL_SRC_FILES := ||' \
+    | while IFS= read -r s; do
+        [ -f "$GAPPS/$s" ] || printf '%s\n' "$s"
+    done)
+if [ -n "$missing" ]; then
+    say "Android.mk references files that are not in the payload:"
+    printf '%s\n' "$missing"
     exit 1
 fi
 
